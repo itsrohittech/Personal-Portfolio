@@ -111,7 +111,6 @@ const CONTACT: ContactRow[] = [
   { icon:"✦", label:"Status",   value:"Open to roles & freelance projects",     href:null },
 ];
 
-
 const TOOLS = ["Android Studio","Kotlin","Java","XML Layouts","Retrofit","Firebase Auth","Room DB","Postman","Figma","Git","PHP","SQL","AePS / UPI SDK"];
 
 
@@ -302,7 +301,7 @@ const HeroSection: FC = () => {
                  style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center top", display:"block" }} />
             {/* name badge */}
             <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"20px 18px 16px", background:"linear-gradient(0deg, rgba(0,0,0,0.55), transparent)" }}>
-              <p style={{ fontSize:13, fontWeight:600, color:"#fff", fontFamily:T.serif }}>Rohit Shankar</p>
+              <p style={{ fontSize:13, fontWeight:540, color:"#fff", fontFamily:T.serif }}>Rohit Shankar</p>
               <p style={{ fontSize:11, color:"rgba(255,255,255,0.75)", fontFamily:T.mono, letterSpacing:"0.08em" }}>Android Developer</p>
             </div>
           </div>
