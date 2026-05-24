@@ -39,7 +39,6 @@ interface Stat    { v: string; l: string; }
 interface ExpItem { role: string; company: string; period: string; location: string; color: string; points: string[]; stack: string[]; }
 interface Project { id: number; title: string; tag: string; year: string; desc: string; stack: string[]; color: string; stats: Stat[]; }
 interface ContactRow { icon: string; label: string; value: string; href: string | null; }
-interface EduItem { deg: string; inst: string; year: string; note: string; }
 
 const SKILLS: Skill[] = [
   { name: "Android SDK & Jetpack",   level: 90 },
@@ -112,10 +111,6 @@ const CONTACT: ContactRow[] = [
   { icon:"✦", label:"Status",   value:"Open to roles & freelance projects",     href:null },
 ];
 
-const EDUCATION: EduItem[] = [
-  { deg:"B.Tech - Information Technology", inst:"Saveetha School of Engineering, Chennai", year:"2024", note:"CGPA 8.25" },
-  { deg:"Computer Science (HSC)",           inst:"Bharathidasan Matric Hr. Sec. School",    year:"2020", note:"Kancheepuram, TN" },
-];
 
 const TOOLS = ["Android Studio","Kotlin","Java","XML Layouts","Retrofit","Firebase Auth","Room DB","Postman","Figma","Git","PHP","SQL","AePS / UPI SDK"];
 
