@@ -116,10 +116,17 @@ const TOOLS = ["Android Studio","Kotlin","Java","XML Layouts","Retrofit","Fireba
 
 function useInView(threshold = 0.12): [React.RefObject<HTMLDivElement>, boolean] {
   const ref = useRef<HTMLDivElement>(null);
-  const [v, setV] = useState(false);
+  // Visible by default so the portfolio never becomes a blank page in older
+  // browsers/webviews where IntersectionObserver is unavailable.
+  const [v, setV] = useState(true);
   useEffect(() => {
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) setV(true); }, { threshold });
-    if (ref.current) io.observe(ref.current);
+    if (typeof IntersectionObserver === "undefined") return;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setV(true);
+    }, { threshold });
+    io.observe(el);
     return () => io.disconnect();
   }, [threshold]);
   return [ref, v];
@@ -130,8 +137,12 @@ const GlobalStyles: FC = () => (
   <style>{`
     @import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap\');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { background: ${T.bg0}; color: ${T.t1}; font-family: ${T.sans}; -webkit-font-smoothing: antialiased; }
+    html { scroll-behavior: smooth; width:100%; max-width:100%; overflow-x:hidden; }
+    body { width:100%; min-width:0; max-width:100%; overflow-x:hidden; background: ${T.bg0}; color: ${T.t1}; font-family: ${T.sans}; -webkit-font-smoothing: antialiased; }
+    body > div, #root { width:100%; max-width:100%; min-width:0; overflow-x:hidden; }
+    img { display:block; max-width:100%; }
+    button, a { -webkit-tap-highlight-color:transparent; }
+    p, li, h1, h2, h3, span, a { overflow-wrap:anywhere; }
     ::selection { background: ${T.goldBg}; color: ${T.goldD}; }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: ${T.bg1}; }
@@ -157,6 +168,132 @@ const GlobalStyles: FC = () => (
 
     .photo-frame { transition: transform 0.4s cubic-bezier(.16,1,.3,1), box-shadow 0.4s ease; }
     .photo-frame:hover { transform: scale(1.025) rotate(-0.5deg); box-shadow: 0 24px 60px rgba(0,0,0,0.16) !important; }
+
+
+    /* Responsive layout */
+    .site-nav { min-width:0; width:100%; max-width:100vw; }
+    .site-nav-links { display:flex; gap:4px; align-items:center; }
+    .nav-menu-btn { display:none; border:0; background:transparent; padding:8px; cursor:pointer; flex-direction:column; gap:4px; }
+    .nav-menu-btn span { display:block; width:22px; height:2px; background:var(--nav-icon, #333); border-radius:2px; }
+    .hero-content, .about-row, .exp-row, .projects-grid, .contact-grid, .skills-grid { min-width:0; max-width:100%; }
+    .hero-copy, .hero-photo-wrap { min-width:0 !important; max-width:100%; }
+    .hero-copy p, .exp-row li, .contact-grid p, .project-card-text { overflow-wrap:anywhere; word-break:normal; }
+    .project-card { min-width:0; max-width:100%; }
+    section { width:100%; max-width:100vw; overflow-x:clip; }
+
+    @media (max-width: 900px) {
+      .hero-content { gap:40px !important; }
+      .hero-copy { flex-basis:min(100%, 620px) !important; }
+      .hero-photo-wrap { flex:0 1 auto !important; }
+      .skills-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:14px 28px !important; }
+      .exp-row { grid-template-columns:130px minmax(0,1fr) !important; gap:0 24px !important; }
+    }
+
+    @media (max-width: 760px) {
+      html, body, #root { width:100% !important; max-width:100vw !important; min-width:0 !important; overflow-x:hidden !important; }
+      .site-nav { height:58px !important; width:100% !important; padding:0 16px !important; }
+      .nav-menu-btn { display:flex !important; flex:0 0 auto; }
+      .site-nav-links {
+        position:fixed !important; top:58px !important; left:12px !important; right:12px !important; z-index:1000 !important;
+        width:auto !important; max-width:none !important; min-width:0 !important;
+        display:none !important; flex-direction:column !important; align-items:stretch !important; gap:2px !important;
+        padding:8px !important; background:rgba(255,255,255,.98) !important; backdrop-filter:blur(18px);
+        border:1px solid ${T.b1}; border-radius:12px; box-shadow:0 14px 36px rgba(0,0,0,.10);
+      }
+      .site-nav-links.open { display:flex !important; }
+      .site-nav-links a { display:block !important; width:100% !important; padding:11px 12px !important; border-radius:8px; }
+
+      .hero-section {
+        width:100% !important; max-width:100vw !important; min-height:auto !important;
+        padding:96px 16px 64px !important; overflow:hidden !important;
+      }
+      .hero-content {
+        display:grid !important; grid-template-columns:minmax(0,1fr) !important;
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+        margin:0 !important; padding:0 !important; gap:34px !important;
+        justify-items:center !important; align-items:center !important;
+        text-align:center !important; flex-direction:unset !important; flex-wrap:unset !important;
+      }
+      .hero-availability { max-width:100%; text-align:center; }
+      .hero-ring { right:0 !important; }
+      .hero-ring-small { left:0 !important; }
+      .hero-copy {
+        display:flex !important; flex-direction:column !important; align-items:center !important;
+        width:100% !important; max-width:620px !important; min-width:0 !important;
+        flex:none !important;
+      }
+      .hero-copy h1 { width:100% !important; font-size:clamp(42px,14vw,64px) !important; }
+      .hero-copy > div:nth-of-type(1) { margin-left:auto !important; margin-right:auto !important; transform-origin:center !important; }
+      .hero-copy > div:nth-of-type(2) { justify-content:center !important; max-width:100%; }
+      .hero-copy p { width:100% !important; max-width:520px !important; margin-left:auto !important; margin-right:auto !important; font-size:15px !important; }
+      .hero-copy > div:last-child { width:100% !important; justify-content:center !important; }
+      .hero-copy > div:last-child a { max-width:100%; }
+      .hero-photo-wrap {
+        width:100% !important; max-width:280px !important; min-width:0 !important;
+        flex:none !important; display:flex !important; justify-content:center !important;
+      }
+      .hero-photo-wrap .photo-frame { width:100% !important; max-width:280px !important; height:350px !important; }
+      .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; width:100% !important; max-width:520px !important; margin-top:48px !important; }
+      .stats-grid > div { min-width:0 !important; padding:16px 8px !important; }
+      .skills-grid { grid-template-columns:minmax(0,1fr) !important; width:100% !important; gap:16px !important; }
+      .scroll-hint { display:none !important; }
+
+      .about-row {
+        display:grid !important; grid-template-columns:minmax(0,1fr) !important;
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+        gap:24px !important; align-items:start !important; text-align:left !important;
+        flex-direction:unset !important; flex-wrap:unset !important;
+      }
+      .about-row > div:first-child { width:100% !important; margin:0 !important; display:flex !important; justify-content:center !important; }
+      .about-row > div:first-child .photo-frame { width:min(72vw,280px) !important; height:min(92vw,350px) !important; max-width:100% !important; }
+      .about-row > div:first-child > div:last-child { right:-4px !important; }
+      .about-row > div:last-child { width:100% !important; min-width:0 !important; flex:none !important; }
+
+      .exp-row {
+        display:grid !important; grid-template-columns:minmax(0,1fr) !important;
+        width:100% !important; min-width:0 !important; gap:18px !important;
+        padding-bottom:36px !important; margin-bottom:36px !important;
+      }
+      .exp-row > div { min-width:0 !important; max-width:100% !important; }
+      .exp-row > div:first-child { display:grid !important; grid-template-columns:minmax(0,1fr) auto; column-gap:12px; align-items:start; }
+      .exp-row > div:first-child p:first-child { grid-column:1/-1; }
+      .exp-row > div:first-child p:nth-child(2) { margin-bottom:0 !important; }
+      .exp-row > div:first-child p:nth-child(3) { text-align:right; }
+      .exp-row li { min-width:0 !important; }
+
+      .projects-grid, .contact-grid {
+        display:grid !important; grid-template-columns:minmax(0,1fr) !important;
+        width:100% !important; max-width:100% !important; min-width:0 !important;
+      }
+      .projects-grid > div, .contact-grid > a, .contact-grid > div { min-width:0 !important; width:100% !important; max-width:100% !important; }
+      .project-card { width:100% !important; max-width:100% !important; min-width:0 !important; overflow:hidden !important; }
+      .project-card-header, .project-card-stats { min-width:0 !important; max-width:100% !important; }
+      .project-card-stats > div { min-width:0 !important; overflow:hidden !important; }
+
+      .contact-grid .card-hover { min-width:0 !important; width:100% !important; }
+      .contact-grid .card-hover > div { min-width:0 !important; }
+      .contact-grid .card-hover p { overflow-wrap:anywhere !important; }
+      section { scroll-margin-top:70px; }
+      .card-hover:hover { transform:none; }
+
+      footer { width:100% !important; max-width:100vw !important; }
+    }
+
+    @media (max-width: 430px) {
+      .hero-section { padding-left:14px !important; padding-right:14px !important; }
+      .hero-copy h1 { font-size:44px !important; }
+      .hero-copy p { font-size:14px !important; line-height:1.75 !important; }
+      .hero-copy a { padding:10px 20px !important; font-size:13px !important; }
+      .hero-photo-wrap .photo-frame { height:320px !important; }
+      .stats-grid .serif-stat { font-size:23px; }
+      .about-row > div:first-child .photo-frame { width:230px !important; height:300px !important; }
+      .contact-grid .card-hover { padding:15px 16px !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      *, *::before, *::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+    }
   `}</style>
 );
 
@@ -171,6 +308,7 @@ const Divider: FC = () => (
 
 const Nav: FC<{active:string}> = ({ active }) => {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", fn);
@@ -178,7 +316,7 @@ const Nav: FC<{active:string}> = ({ active }) => {
   }, []);
 
   return (
-    <nav style={{
+    <nav className="site-nav" style={{
       position:"fixed", top:0, left:0, right:0, zIndex:100,
       height:60,
       display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -191,7 +329,7 @@ const Nav: FC<{active:string}> = ({ active }) => {
       <span style={{ fontFamily:T.serif, fontSize:18, color:T.t1 }}>
         Rohit<span style={{ color:T.gold, fontStyle:"italic" }}></span>
       </span>
-      <div style={{ display:"flex", gap:4 }}>
+      <div className={`site-nav-links${menuOpen ? " open" : ""}`}>
         {["Hero","About","Experience","Projects","Contact"].map(l => {
           const id = l.toLowerCase();
           const on = active === id;
@@ -200,10 +338,16 @@ const Nav: FC<{active:string}> = ({ active }) => {
                style={{ padding:"6px 14px", fontSize:13, fontWeight: on?500:400, color: on?T.t1:T.t2, letterSpacing:"0.03em", transition:"color 0.2s" }}
                onMouseEnter={e => (e.currentTarget.style.color=T.t1)}
                onMouseLeave={e => { if(!on) e.currentTarget.style.color=T.t2; }}
+               onClick={()=>setMenuOpen(false)}
             >{l}</a>
           );
         })}
       </div>
+      <button className="nav-menu-btn" aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={()=>setMenuOpen(v=>!v)}>
+        <span />
+        <span />
+        <span />
+      </button>
     </nav>
   );
 };
@@ -232,19 +376,19 @@ const HeroSection: FC = () => {
   const [skillRef, skillVis] = useInView(0.15);
 
   return (
-    <section id="hero" style={{ minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", padding:"80px clamp(20px,6vw,80px) 80px", position:"relative", background:T.bg0 }}>
+    <section id="hero" className="hero-section" style={{ minHeight:"100vh", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", padding:"80px clamp(20px,6vw,80px) 80px", position:"relative", background:T.bg0 }}>
 
       {/* thin gold top bar */}
       <div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:`linear-gradient(90deg, transparent 0%, ${T.gold} 30%, ${T.goldL} 60%, transparent 100%)` }} />
 
       {/* availability */}
-      <div style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:100, border:`1px solid rgba(46,125,82,0.3)`, background:"rgba(46,125,82,0.06)", marginBottom:40, animation:"fadeIn 0.8s ease both" }}>
+      <div className="hero-availability" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"6px 16px", borderRadius:100, border:`1px solid rgba(46,125,82,0.3)`, background:"rgba(46,125,82,0.06)", marginBottom:40, animation:"fadeIn 0.8s ease both" }}>
         <span style={{ width:7, height:7, borderRadius:"50%", background:T.green, display:"block", animation:"dotPulse 2s infinite" }} />
         <span style={{ fontSize:12, color:T.green, fontFamily:T.mono, letterSpacing:"0.1em" }}>Available for hire</span>
       </div>
 
       {/* hero split: text + photo */}
-      <div style={{
+      <div className="hero-content" style={{
   display:"flex",
   alignItems:"center",
   gap:"clamp(32px,6vw,80px)",
@@ -258,7 +402,7 @@ const HeroSection: FC = () => {
 }}>
 
         {/* LEFT — text */}
-        <div style={{ flex:"1 1 360px", minWidth:280 }}>
+        <div className="hero-copy" style={{ flex:"1 1 360px", minWidth:280 }}>
           <h1 style={{ fontFamily:T.serif, fontSize:"clamp(40px,7vw,80px)", fontWeight:700, color:T.t1, lineHeight:1.02, letterSpacing:"-0.025em", marginBottom:12 }}>
             Rohit<br/>Shankar
           </h1>
@@ -288,7 +432,7 @@ const HeroSection: FC = () => {
         </div>
 
         {/* RIGHT — professional photo */}
-        <div style={{ flex:"0 0 auto", position:"relative" }}>
+        <div className="hero-photo-wrap" style={{ flex:"0 0 auto", position:"relative" }}>
           <div className="photo-frame" style={{
             width:"clamp(220px,28vw,300px)", height:"clamp(275px,35vw,375px)",
             borderRadius:20,
@@ -306,16 +450,16 @@ const HeroSection: FC = () => {
             </div>
           </div>
           {/* gold ring decoration */}
-          <div style={{ position:"absolute", top:-12, right:-12, width:64, height:64, borderRadius:"50%", border:`2px solid ${T.gold}33`, pointerEvents:"none" }} />
-          <div style={{ position:"absolute", bottom:-16, left:-16, width:44, height:44, borderRadius:"50%", border:`1px solid ${T.goldBg}`, pointerEvents:"none" }} />
+          <div className="hero-ring" style={{ position:"absolute", top:-12, right:-12, width:64, height:64, borderRadius:"50%", border:`2px solid ${T.gold}33`, pointerEvents:"none" }} />
+          <div className="hero-ring-small" style={{ position:"absolute", bottom:-16, left:-16, width:44, height:44, borderRadius:"50%", border:`1px solid ${T.goldBg}`, pointerEvents:"none" }} />
         </div>
       </div>
 
       {/* stats */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, background:T.b1, border:`1px solid ${T.b1}`, borderRadius:12, overflow:"hidden", maxWidth:520, width:"100%", marginTop:64, animation:"fadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.35s both" }}>
+      <div className="stats-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:1, background:T.b1, border:`1px solid ${T.b1}`, borderRadius:12, overflow:"hidden", maxWidth:520, width:"100%", marginTop:64, animation:"fadeUp 0.9s cubic-bezier(.16,1,.3,1) 0.35s both" }}>
         {[{v:"2+",l:"Years"},{v:"10+",l:"Apps"},{v:"300+",l:"Trained"},{v:"8.25",l:"CGPA"}].map((s,i)=>(
           <div key={i} style={{ padding:"20px 12px", background:T.bg0, textAlign:"center" }}>
-            <div style={{ fontFamily:T.serif, fontSize:26, fontWeight:600, color:T.gold, lineHeight:1 }}>{s.v}</div>
+            <div className="serif-stat" style={{ fontFamily:T.serif, fontSize:26, fontWeight:600, color:T.gold, lineHeight:1 }}>{s.v}</div>
             <div style={{ fontSize:10, color:T.t3, fontFamily:T.mono, letterSpacing:"0.1em", marginTop:6, textTransform:"uppercase" }}>{s.l}</div>
           </div>
         ))}
@@ -327,7 +471,7 @@ const HeroSection: FC = () => {
           <div style={{ width:24, height:1, background:T.gold }} />
           <Eyebrow>Skill matrix</Eyebrow>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(310px, 1fr))", gap:"14px 56px" }}>
+        <div className="skills-grid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(310px, 1fr))", gap:"14px 56px" }}>
           {SKILLS.map((sk,i)=>(
             <div key={sk.name}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:7 }}>
@@ -351,7 +495,7 @@ const HeroSection: FC = () => {
       </div>
 
       {/* scroll hint */}
-      <div style={{ position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:6, opacity:0.3 }}>
+      <div className="scroll-hint" style={{ position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)", display:"flex", flexDirection:"column", alignItems:"center", gap:6, opacity:0.3 }}>
         <div style={{ width:1, height:36, background:T.t3 }} />
         <span style={{ fontSize:10, fontFamily:T.mono, color:T.t3, letterSpacing:"0.12em", textTransform:"uppercase" }}>scroll</span>
       </div>
@@ -368,7 +512,7 @@ const AboutSection: FC = () => {
     <section id="about" style={{ padding:"100px clamp(20px,6vw,80px)", background:T.bg1 }}>
       <Divider />
       <div style={{ maxWidth:1000, margin:"0 auto", paddingTop:80 }}>
-        <div ref={ref} className={`reveal${vis?" vis":""}`} style={{ display:"flex", alignItems:"flex-start", gap:"clamp(32px,6vw,80px)", flexWrap:"wrap" }}>
+        <div ref={ref} className={`reveal about-row${vis?" vis":""}`} style={{ display:"flex", alignItems:"flex-start", gap:"clamp(32px,6vw,80px)", flexWrap:"wrap" }}>
 
           {/* casual photo */}
           <div style={{ flex:"0 0 auto", position:"relative" }}>
@@ -456,7 +600,7 @@ const ExpCard: FC<{exp:ExpItem; idx:number}> = ({ exp, idx }) => {
   const [ref, vis] = useInView(0.1);
   return (
     <div ref={ref} className={`reveal${vis?" vis":""}`} style={{ transitionDelay:`${idx*100}ms` }}>
-      <div style={{ display:"grid", gridTemplateColumns:"160px 1fr", gap:"0 40px", paddingBottom:48, borderBottom:`1px solid ${T.b1}`, marginBottom:48 }}>
+      <div className="exp-row" style={{ display:"grid", gridTemplateColumns:"160px 1fr", gap:"0 40px", paddingBottom:48, borderBottom:`1px solid ${T.b1}`, marginBottom:48 }}>
         <div>
           <p style={{ fontSize:12, fontFamily:T.mono, color:T.t3, letterSpacing:"0.06em", marginBottom:6 }}>{exp.period}</p>
           <p style={{ fontSize:13, color:exp.color, fontWeight:500, marginBottom:4 }}>{exp.company}</p>
@@ -526,17 +670,17 @@ const ProjectCard: FC<{project:Project; index:number}> = ({ project, index }) =>
   return (
     <div ref={ref} className={`reveal${vis?" vis":""}`} style={{ transitionDelay:`${index*60}ms` }}>
       <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-           style={{ position:"relative", padding:"26px 26px 22px", background:hov?T.bg2:T.bg1, border:`1px solid ${hov?T.b2:T.b1}`, borderRadius:16, overflow:"hidden", transition:"all 0.25s ease", transform:hov?"translateY(-4px)":"translateY(0)", boxShadow:hov?"0 12px 36px rgba(0,0,0,0.07)":"none", height:"100%", display:"flex", flexDirection:"column" }}>
+           className="project-card" style={{ position:"relative", padding:"26px 26px 22px", background:hov?T.bg2:T.bg1, border:`1px solid ${hov?T.b2:T.b1}`, borderRadius:16, overflow:"hidden", transition:"all 0.25s ease", transform:hov?"translateY(-4px)":"translateY(0)", boxShadow:hov?"0 12px 36px rgba(0,0,0,0.07)":"none", height:"100%", display:"flex", flexDirection:"column" }}>
         <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:project.color, opacity:hov?0.9:0.35, transition:"opacity 0.3s" }} />
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14 }}>
-          <div>
+        <div className="project-card-header" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:14, minWidth:0 }}>
+          <div style={{ minWidth:0, flex:"1 1 auto" }}>
             <span style={{ display:"inline-block", padding:"3px 10px", fontSize:11, color:project.color, fontFamily:T.mono, letterSpacing:"0.08em", border:`1px solid ${project.color}40`, borderRadius:100, background:`${project.color}0f`, marginBottom:10 }}>{project.tag}</span>
             <h3 style={{ fontSize:16, fontWeight:500, color:T.t1, lineHeight:1.3 }}>{project.title}</h3>
           </div>
           <span style={{ fontSize:12, color:T.t3, fontFamily:T.mono, flexShrink:0, marginLeft:12 }}>{project.year}</span>
         </div>
-        <p style={{ fontSize:13, color:T.t2, lineHeight:1.75, marginBottom:20, flex:1 }}>{project.desc}</p>
-        <div style={{ display:"flex", gap:0, marginBottom:18, borderRadius:8, overflow:"hidden", border:`1px solid ${T.b1}` }}>
+        <p className="project-card-text" style={{ fontSize:13, color:T.t2, lineHeight:1.75, marginBottom:20, flex:1, minWidth:0 }}>{project.desc}</p>
+        <div className="project-card-stats" style={{ display:"flex", gap:0, marginBottom:18, borderRadius:8, overflow:"hidden", border:`1px solid ${T.b1}`, minWidth:0 }}>
           {project.stats.map((s,i)=>(
             <div key={i} style={{ flex:1, padding:"10px 8px", textAlign:"center", borderRight:i<2?`1px solid ${T.b1}`:"none", background:i===1?`${project.color}08`:"transparent" }}>
               <div style={{ fontSize:14, fontWeight:600, color:project.color, fontFamily:T.serif }}>{s.v}</div>
@@ -565,7 +709,7 @@ const ProjectsSection: FC = () => {
           <h2 style={{ fontFamily:T.serif, fontSize:"clamp(28px,5vw,52px)", fontWeight:600, color:T.t1, letterSpacing:"-0.02em", lineHeight:1.1 }}>Projects</h2>
           <p style={{ fontSize:15, color:T.t2, marginTop:14, maxWidth:480, lineHeight:1.75 }}>Android apps built for real users in fintech, healthtech, and social impact.</p>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:20 }}>
+        <div className="projects-grid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:20 }}>
           {PROJECTS.map((p,i)=><ProjectCard key={p.id} project={p} index={i}/>)}
         </div>
       </div>
@@ -586,7 +730,7 @@ const ContactSection: FC = () => {
             Open to senior Android roles, freelance projects and anything in the mobile-first fintech / healthtech space. Usually reply within 24 hours.
           </p>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:12, marginBottom:52 }}>
+        <div className="contact-grid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))", gap:12, marginBottom:52 }}>
           {CONTACT.map((row,i)=>{
             const inner=(
               <div className="card-hover" style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 20px", background:T.bg1, border:`1px solid ${T.b1}`, borderRadius:12, opacity:vis?1:0, transform:vis?"translateY(0)":"translateY(16px)", transition:`opacity 0.6s ease ${i*70}ms, transform 0.6s ease ${i*70}ms, background 0.22s, border-color 0.22s, box-shadow 0.22s, transform 0.22s` }}>
@@ -628,7 +772,22 @@ const Footer: FC = () => (
 
 const Portfolio: FC = () => {
   const [active, setActive] = useState("hero");
+
+  // Make the component safe to drop into projects whose index.html is missing
+  // the mobile viewport declaration. This is what prevents the desktop layout
+  // from being rendered as a clipped page on a real phone.
   useEffect(() => {
+    let meta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "viewport";
+      document.head.appendChild(meta);
+    }
+    meta.content = "width=device-width, initial-scale=1, viewport-fit=cover";
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
     const ids = ["hero","about","experience","projects","contact"];
     const obs = ids.map(id => {
       const el = document.getElementById(id);
@@ -641,7 +800,7 @@ const Portfolio: FC = () => {
   },[]);
 
   return (
-    <div style={{ background:T.bg0, color:T.t1, minHeight:"100vh", fontFamily:T.sans, position:"relative" }}>
+    <div className="portfolio-root" style={{ background:T.bg0, color:T.t1, minHeight:"100vh", width:"100%", maxWidth:"100vw", minWidth:0, overflowX:"hidden", fontFamily:T.sans, position:"relative" }}>
       <GlobalStyles/>
       <Nav active={active}/>
       <div style={{ position:"relative", zIndex:1 }}>
